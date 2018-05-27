@@ -66,7 +66,6 @@ class Core extends PluginBase implements Listener{
 	}
 	
 	public function registerTypes() : void{
-			Enchantment::registerEnchantment(new Enchantment(Enchantment::THORNS, "Thorns", Enchantment::RARITY_UNCOMMON, Enchantment::SLOT_ARMOR, Enchantment::SLOT_NONE, 3));
 			Enchantment::registerEnchantment(new Enchantment(Enchantment::DEPTH_STRIDER, "Depth Strider", Enchantment::RARITY_UNCOMMON, Enchantment::SLOT_FEET, Enchantment::SLOT_NONE, 3));
 			Enchantment::registerEnchantment(new Enchantment(Enchantment::AQUA_AFFINITY, "Aqua Affinity", Enchantment::RARITY_UNCOMMON, Enchantment::SLOT_HEAD, Enchantment::SLOT_NONE, 1));
 			Enchantment::registerEnchantment(new Enchantment(Enchantment::SHARPNESS, "Sharpness", Enchantment::RARITY_UNCOMMON, Enchantment::SLOT_SWORD, Enchantment::SLOT_AXE, 5));
@@ -176,22 +175,9 @@ class Core extends PluginBase implements Listener{
 							}
 						}
 					}
-					if($player instanceof Player){
-						foreach($player->getArmorInventory()->getContents() as $slot => $armor){
-							if(($level = $armor->getEnchantmentLevel(Enchantment::THORNS)) > 0){
-								if(rand(1, 100) <= 15 * $level){
-									$damager->attack(new EntityDamageEvent($damager, EntityDamageEvent::CAUSE_CUSTOM, 2));
-									$armor->applyDamage(rand(2, 8));
-									$player->getArmorInventory()->setItem($slot, $armor);
-									break;
-								}
-							}
-						}
-					}
 				}
 			}
 	}
-	
 	/**
 	 * @param EntityShootBowEvent $event
 	 * @ignoreCancelled false
