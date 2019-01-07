@@ -86,44 +86,47 @@ class Core extends PluginBase implements Listener{
 	
 	/**
 	 * @param BlockBreakEvent $event
-	 * @param ignoreCancelled false
+	 * @param ignoreCancelled true
 	 * @priority LOWEST
 	 */
 	
 	public function onBreak(BlockBreakEvent $event) : void{
-			$player = $event->getPlayer();
-			$block = $event->getBlock();
-			$item = $event->getItem();
-			if($event->isCancelled() == false){
-				if(($level = $item->getEnchantmentLevel(Enchantment::FORTUNE)) > 0){
-					$add = rand(0, $level + 1);
-					switch($block->getId()){
-						case Item::COAL_ORE:
-							$event->setDrops([Item::get(Item::COAL, 0, 1 + $add)]);
-						break;
-						case Item::DIAMOND_ORE:
-							$event->setDrops([Item::get(Item::DIAMOND, 0, 1 + $add)]);
-						break;
-						case Item::LAPIS_ORE:
-							$event->setDrops([Item::get(Item::DYE, 4, rand(4, 8) + $add)]);
-						break;
-						case Item::REDSTONE_ORE:
-							$event->setDrops([Item::get(Item::REDSTONE_DUST, 0, rand(4, 8) + $add)]);
-						break;
-						case Item::EMERALD_ORE:
-							$event->setDrops([Item::get(Item::EMERALD, 0, 1 + $add)]);
-						break;
-						case Item::LEAVES:
-							if(rand(1, 100) <= $level * 2){
-								$event->setDrops([Item::get(Item::APPLE)]);
-							}
-						break;
-						case Item::NETHER_QUARTZ_ORE:
-							$event->setDrops([Item::get(Item::NETHER_QUARTZ, 1, rand(4, 8) + $add)]);
-						break;
-					}
+		$player = $event->getPlayer();
+		$block = $event->getBlock();
+		$item = $event->getItem();
+	
+		if($block->getId() == Item::LEAVES){
+			if(mt_rand(1, 99) <= 10){
+				$event->setDrops([Item::get(Item::APPLE)]);
+			}
+		}
+				
+		if(($level = $item->getEnchantmentLevel(Enchantment::FORTUNE)) > 0){
+			$add = mt_rand(0, $level + 1);
+					
+			if($block->getId() == Block::LEAVES){
+				if(mt_rand(1, 99) <= 10){
+					$event->setDrops([Item::get(Item::APPLE)]);
 				}
 			}
+			
+			foreach($this->getConfig()->get("fortune.blocks", []) as $str){
+				$it = Item::fromString($str);
+				
+				if($block->getId() == $it->getId()){
+					if(mt_rand(1, 99) <= 10 * $level){
+						if(empty($event->getDrops()) == false){
+							$event->setDrops(array_map(function(Item $drop) use($add){
+								$drop->setCount($drop->getCount() + $add);
+								return $drop;
+							}, $event->getDrops()));
+						}
+					}
+					
+					break;
+				}
+			}
+		}
 	}
 	
 	/**
