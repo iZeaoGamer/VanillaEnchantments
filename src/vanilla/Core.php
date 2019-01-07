@@ -170,17 +170,53 @@ class Core extends PluginBase implements Listener{
 						$event->setKnockBack((0.4 * $level) + 0.1);
 					}
 					if(($level = $damager->getInventory()->getItemInHand()->getEnchantmentLevel(Enchantment::LOOTING)) > 0){
-						if($player instanceof Player == false and $event->getFinalDamage() >= $player->getHealth()){
-							$player->close();
-							foreach($player->getDrops() as $drop){
-								$drop->setCount($drop->getCount() + rand(0, $level));
+				if($player instanceof Player == false and $player instanceof Living and $event->getFinalDamage() >= $player->getHealth()){
+					$add = mt_rand(0, $level + 1);
+					
+					foreach($this->getConfig()->get("looting.entities") as $eid => $items){
+						$id = constant(Entity::class."::".strtoupper($eid));
+						
+						if($player::NETWORK_ID == $id){
+							$drops = $this->getLootingDrops($player->getDrops(), $items, $add);
+							
+							foreach($drops as $drop){
 								$damager->getLevel()->dropItem($player, $drop);
+							}
+							
+							$player->flagForDespawn();
 							}
 						}
 					}
 				}
 			}
 	}
+	}
+	/**
+	 * @param array $drops
+	 * @param array $items
+	 * @param int $add
+	 * @return array
+	 */
+	
+	public function getLootingDrops(array $drops, array $items, int $add) : array{
+		$r = [];
+		
+		foreach($items as $ite){
+			$item = Item::fromString($ite);
+			
+			foreach($drops as $drop){
+				if($drop->getId() == $item->getId()){
+					$drop->setCount($drop->getCount() + $add);
+				}
+				
+				$r[] = $drop;
+				break;
+			}
+		}
+		
+		return $r;
+	}
+	
 	/**
 	 * @param EntityShootBowEvent $event
 	 * @ignoreCancelled false
@@ -205,19 +241,6 @@ class Core extends PluginBase implements Listener{
 					}
 					$arrow->namedtag->setByte("infinity", 0);
 				}
-			}
-	}
-	
-	/**
-	 * @param ProjectileHitEvent $event
-	 * @ignoreCancelled true
-	 * @priority HIGHEST
-	 */
-	
-	public function onGroundHit(ProjectileHitBlockEvent $event) : void{
-			$entity = $event->getEntity();
-			if($entity->namedtag->getByte("infinity", 1) !== 1){
-				$entity->flagForDespawn();
 			}
 	}
 }
